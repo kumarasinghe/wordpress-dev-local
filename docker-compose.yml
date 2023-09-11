@@ -1,0 +1,44 @@
+# An environment for WordPress development
+
+version: '3'
+
+services:
+  db:
+    container_name: wp-dev-db
+    image: mariadb:lts
+    expose:
+      - "3306"
+    environment:
+      - MARIADB_ROOT_PASSWORD=rootpassword
+      - MARIADB_DATABASE=wordpress
+    volumes:
+      - ./system/mysql:/var/lib/mysql
+
+  wordpress:
+    container_name: wp-dev-wordpress
+    depends_on: 
+      - db
+    build:
+      context: ./wordpress-image
+      dockerfile: Dockerfile
+    image: wp-dev-wordpress
+    ports:
+      - "80:80"
+    environment:
+      - WORDPRESS_DB_HOST=wp-dev-db:3306
+      - WORDPRESS_DB_USER=root
+      - WORDPRESS_DB_PASSWORD=rootpassword
+      - WORDPRESS_DB_NAME=wordpress
+      - WORDPRESS_TABLE_PREFIX=wp
+      - WORDPRESS_CONFIG_EXTRA=define('FS_METHOD', 'direct'); define( 'WP_MEMORY_LIMIT', '2048M' );
+    volumes:
+      - ./system/wordpress:/var/www/html
+
+volumes:
+  db_data: {}
+  wordpress_data: {}
+
+networks:
+  default:
+    name: wp_network
+
